@@ -10,7 +10,6 @@ hub = PrimeHub()
 # setup
 motor_left = Motor(Port.B, Direction.CLOCKWISE)
 motor_right = Motor(Port.A, Direction.COUNTERCLOCKWISE)
-# wheel_circumferance = 17.6
 wheel_circumferance = 56
 axle_track = 110
 drive_base = DriveBase(motor_left, motor_right, wheel_circumferance, axle_track)
@@ -41,56 +40,56 @@ def check_if_in_range(val, r):
 hue = (0, 50)
 saturation = (0, 30)
 brightness = (0, 30)
-# hue = (160,240)
-# saturation = (9, 21)
-# brightness = (18, 24)
+
+
+tape = lambda x: x < 5
 def check_line(sensor: ColorSensor):
-    c = sensor.hsv(True)
-    h = c.h
-    s = c.s
-    v = c.v
-    return check_if_in_range(h, hue) and check_if_in_range(s, saturation) and check_if_in_range(v, brightness)
+    return sensor.reflection() < 6
+
+
+def check_intersection(ls: ColorSensor, rs: ColorSensor):
+    return check_line(ls) and check_line(rs)
+
+def calibrate_movement(speed, db: DriveBase, lcs: ColorSensor, rcs: ColorSensor):
+    if(check_line(lcs)):
+        db.drive(speed, -100)
+    elif(check_line(rcs)):
+        db.drive(speed, 100)
+    else:
+        db.drive(speed, 0)
 
 while not hub.imu.ready():
     print('calibrating')
     wait(1000)
 
-def check_for_black_line(s: ColorSensor):
-    detected_color = s.color()
-    return detected_color == Color.BLACK
 
-
-def noise(n):
-    hub.speaker.volume(30)
+def noise(n, vol: Int = 30):
+    hub.speaker.volume(vol)
     for _ in range(n):
         hub.speaker.beep()
         wait(50)
 
 # main loop!
 reached_goal = False
-drive_base.drive(-100, 0)
-while not reached_goal:
-    if(check_line(sensor_left) and check_line(sensor_right)):
-        #If we get here, we have found a line meaning we have veered off of the path
-        # or gotten to a crossing
-        turn(90)
-        reached_goal = True
+debug_mode = True
+hub.speaker.volume(10)
 
+junction_detected = lambda s : s.reflection() < 6
+
+
+while not reached_goal:
+    if(junction_detected(sensor_left)):
+        #
+        reached_goal = True
+        noise(3,30)
+    calibrate_movement(100, drive_base, sensor_left, sensor_right)
+    l = check_line(sensor_left)
+    r = check_line(sensor_right)
+    if(debug_mode):
+        print(drive_base.distance())
 drive_base.stop()
 
 
-maze_representation = [
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0]
-]
-#starting in upper left corner
-box_length = (184.5, 65.5, 185, 66)
-
-
-# def turn_corner():
-     
 
 # debug tools /////////////////////////////////////
 def measure_average_hsv(n, sensor: ColorSensor, surface = False):
