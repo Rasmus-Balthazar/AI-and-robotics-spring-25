@@ -90,7 +90,6 @@ while not reached_goal:
 drive_base.stop()
 
 
-
 # debug tools /////////////////////////////////////
 def measure_average_hsv(n, sensor: ColorSensor, surface = False):
     vs = []

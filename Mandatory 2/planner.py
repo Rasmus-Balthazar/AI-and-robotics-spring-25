@@ -8,10 +8,15 @@ class Graph:
         self.nodes.add(node)
         self.graph[node] = []
         
-    def add_edge(self, node1, node2, weight):
-        self.graph[node1].append((node2, weight))
-        self.graph[node2].append((node1, weight))
-        self.edges.append((node1, node2), weight)
+    def add_edge(self, node1, node2, value):
+        if(node1 not in self.graph):
+            self.add_node(node1)
+        if(node2 not in self.graph):
+            self.add_node(node2)
+        self.graph[node1].append(node2)
+        self.graph[node2].append(node1)
+        self.edges.append((node1, node2), value)
+    
 
     def get_neighbors(self, node):
         return self.graph[node]
@@ -59,8 +64,29 @@ class Planner:
             node = self.parent[node]
         return path[::-1]
     
+    def generate_graph(self, matrix):
+        for i in range(len(matrix)):
+            for j in range(len(matrix[i])):
+                self.graph.add_node((i, j))
+        return self.graph
+    
     def __str__(self):
         return str(self.parent)
     
     def __repr__(self):
         return str(self.parent)
+
+if __name__ == "__main__":
+    graph = Graph()
+    planner = Planner(graph, (0, 0), (3, 3))
+    matrix = [[0, 0, 0, 0],
+              [0, 1, 0, 1],
+              [0, 0, 0, 0],
+              [0, 1, 0, 0]]
+    graph = planner.generate_graph(matrix)
+    planner.bfs()
+    # print(planner.get_path())
+    # print(planner)
+    # print(graph)
+    # print(graph.get_nodes())
+    # print(graph.get_edges())
