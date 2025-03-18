@@ -46,21 +46,22 @@ def bfs(player, goals, walls, boxes):
     #FIXME: push boxes
     #FIXME: Change goal to be pushing boxes into the goal
     while not queue.is_empty():
-        current_node = queue.dequeue()
-        current_state, move = current_node.state
+        tmp = queue.dequeue()
+        current_state, move = tmp.state
         #where can the player move
-        tmp = Node((current_state, move),[],current_node)
+        # tmp = Node((current_state, move),[],current_node)
         for direction in directions:
             new_position = (current_state[0] + direction[0], current_state[1] + direction[1])
-            new_pos_node = Node((player, move), [], tmp)
-            #if the new position is a wall, or it has already been visited
-            n = Node((new_position, direction), [], tmp)
             if new_position in walls or new_position in visited:
                 continue #we can't move here, don't add it to the queue
+
+            #if the new position is a wall, or it has already been visited
+            n = Node((new_position, direction), [], tmp)
+            tmp.children.append(n)
             #if the new position is a goal
             if new_position in goals:
                 # return moves, path #we have reached the goal
-                return new_pos_node #we have reached the goal
+                return n #we have reached the goal
                 #alternatively check if there are no boxes left = win!
             #if the new position is a box
             if new_position in boxes:
@@ -83,6 +84,7 @@ def bfs(player, goals, walls, boxes):
                     queue.enqueue(n)
                     path.append((new_position, direction))
                     visited.add(player)
+                    visited = set()
             else:
                 #if the new position is empty
                 player = new_position
@@ -111,14 +113,21 @@ input = """#######
 # ..  #
 #  *  #
 #######"""
-input_simple = """#######
+input_simple_1 = """#######
 #.    #
 #$    #
 #     #
 #     #
 #  @  #
 #######"""
-p, g, w, b = read_input(input_simple)
+input_simple_2 = """#######
+#.    #
+#$    #
+#     #
+#     #
+#@    #
+#######"""
+p, g, w, b = read_input(input_simple_1)
 print(p)
 print(g)
 print(w)
@@ -130,5 +139,6 @@ path, moves = get_path_from_leaf(leaf)
 print(leaf.parent.state)
 print(path)
 print(moves)
+print(len(moves))
 # print(path)
 # print(moves)
