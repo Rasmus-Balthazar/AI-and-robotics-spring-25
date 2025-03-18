@@ -22,10 +22,10 @@ def read_input(input):
     return player_index, goals, walls, boxes
 
 class Node:
-    def __init__(self, s, c, p):
-        state = s # state, what is our current index + move for how we got here. tuple 
-        children = c
-        parent = p 
+    def __init__(self, _state, _children, _parent):
+        self.state = _state # state, what is our current index + move for how we got here. tuple 
+        self.children = _children
+        self.parent = _parent
 class Tree:
     def __init__(self, start_state):
         root = start_state 
@@ -33,10 +33,11 @@ def bfs(player, goals, walls, boxes):
     visited = set()
     queue = Kueue()
     moves = []
-    queue.enqueue((player, moves))
+    # queue.enqueue((player, moves))
     visited.add(player)
-    root = Node(player, [], [])
-    tree = tree(root)
+    root = Node(( player, (0,0)), [], None)
+    queue.enqueue(root)
+    tree = Tree(root)
     path = []
     directions = [(0,1), (0,-1), (1,0), (-1,0)] #right, left, down, up
     
@@ -45,18 +46,21 @@ def bfs(player, goals, walls, boxes):
     #FIXME: push boxes
     #FIXME: Change goal to be pushing boxes into the goal
     while not queue.is_empty():
-        current, moves = queue.dequeue()
+        current_node = queue.dequeue()
+        current_state, move = current_node.state
         #where can the player move
-        tmp = Node((current, moves),[],[])
+        tmp = Node((current_state, move),[],current_node)
         for direction in directions:
-            new_position = (current[0] + direction[0], current[1] + direction[1])
+            new_position = (current_state[0] + direction[0], current_state[1] + direction[1])
+            new_pos_node = Node((player, move), [], tmp)
             #if the new position is a wall, or it has already been visited
             n = Node((new_position, direction), [], tmp)
             if new_position in walls or new_position in visited:
                 continue #we can't move here, don't add it to the queue
             #if the new position is a goal
             if new_position in goals:
-                return moves, path #we have reached the goal
+                # return moves, path #we have reached the goal
+                return new_pos_node #we have reached the goal
                 #alternatively check if there are no boxes left = win!
             #if the new position is a box
             if new_position in boxes:
@@ -71,25 +75,34 @@ def bfs(player, goals, walls, boxes):
                     #update the position of the player
                     player = new_position
                     
-                    
+                    # make new node and link it to parent and add it to queue to be exapanded
+                    n = Node((new_position, direction),[], tmp)
                     #add the move to the list of moves
                     moves.append(direction)
                     #add the new position to the queue
-                    new_pos_node = Node((player, moves), [], tmp)
-                    queue.enqueue((player, moves))
+                    queue.enqueue(n)
                     path.append((new_position, direction))
                     visited.add(player)
             else:
                 #if the new position is empty
                 player = new_position
                 moves.append(direction)
-                queue.enqueue((player, moves))
+                n = Node((new_position, direction), [], tmp)
+                queue.enqueue(n)
                 path.append(new_position)
             visited.add(new_position)
-    return moves, path
+    return root
             
-
-
+def get_path_from_leaf(leaf: Node):
+    path = []   
+    moves = []
+    while leaf.parent != None:
+        path.append(leaf.state)
+        pos, move = leaf.parent.state
+        path.append(pos)
+        moves.append(move)
+        leaf = leaf.parent
+    return path, moves
 # Claire
 input = """#######
 #.@ # #
@@ -111,7 +124,11 @@ print(g)
 print(w)
 print(b)
 print("Solution: ------------------")
-moves, path = bfs(p, g, w, b)
-
+# moves, path = bfs(p, g, w, b)
+leaf = bfs(p, g, w, b)
+path, moves = get_path_from_leaf(leaf)
+print(leaf.parent.state)
 print(path)
 print(moves)
+# print(path)
+# print(moves)
