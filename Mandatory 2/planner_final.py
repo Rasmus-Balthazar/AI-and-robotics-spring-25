@@ -21,6 +21,9 @@ def read_input(input):
                 walls.add((i,j))
     return player_index, goals, walls, boxes
 
+def read_input_from_file(file):
+    return 0
+
 class Node:
     def __init__(self, _state, _children, _parent):
         self.state = _state # state, what is our current index + move for how we got here. tuple 
@@ -29,17 +32,17 @@ class Node:
 class Tree:
     def __init__(self, start_state):
         root = start_state 
-def bfs(player, goals, walls, boxes):
+def bfs(start, goals, walls, boxes):
     visited = set()
     queue = Kueue()
     moves = []
     # queue.enqueue((player, moves))
-    visited.add(player)
-    root = Node(( player, (0,0)), [], None)
+    visited.add(start)
+    root = Node(( start, (0,0)), [], None)
     queue.enqueue(root)
     tree = Tree(root)
     path = []
-    directions = [(0,1), (0,-1), (1,0), (-1,0)] #right, left, down, up
+    directions = [(0,1), (0,-1), (1,0), (-1,0)] #East, West, South, North 
     
     #FIXME: add the path to the queue
     #FIXME: add the path to the visited set
@@ -60,6 +63,8 @@ def bfs(player, goals, walls, boxes):
             tmp.children.append(n)
             #if the new position is a goal
             if new_position in goals:
+                # remove box
+                
                 # return moves, path #we have reached the goal
                 return n #we have reached the goal
                 #alternatively check if there are no boxes left = win!
@@ -68,26 +73,25 @@ def bfs(player, goals, walls, boxes):
                 #where can the box move
                 box_position = (new_position[0] + direction[0], new_position[1] + direction[1])
                 #if the box can move
+                # if box_position in goals:
+                #     boxes.remove(box_position)
+                    
                 if box_position not in walls and box_position not in boxes:
                     # a box must never be pushed into a corner, check if box is in a corner now
                     #update the position of the box
                     boxes.remove(new_position)
                     boxes.add(box_position)
-                    #update the position of the player
-                    player = new_position
                     
-                    # make new node and link it to parent and add it to queue to be exapanded
+                    # make new node and link it to parent and add it to queue to be expanded
                     n = Node((new_position, direction),[], tmp)
                     #add the move to the list of moves
                     moves.append(direction)
                     #add the new position to the queue
                     queue.enqueue(n)
                     path.append((new_position, direction))
-                    visited.add(player)
                     visited = set()
             else:
                 #if the new position is empty
-                player = new_position
                 moves.append(direction)
                 n = Node((new_position, direction), [], tmp)
                 queue.enqueue(n)
@@ -105,8 +109,14 @@ def get_path_from_leaf(leaf: Node):
         moves.append(move)
         leaf = leaf.parent
     return path, moves
+
+def solve(puzzle):
+    start_position, goals, walls, boxes = read_input(puzzle)
+    res = bfs(start_position, goals, walls, boxes)
+    path = get_path_from_leaf(res)
+    return path
 # Claire
-input = """#######
+claire = """#######
 #.@ # #
 #$* $ #
 #   $ #
